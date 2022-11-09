@@ -4,20 +4,23 @@
 
 ## 项目源码
 https://github.com/helloJiu/openresty-wechat
-## 微信公众平台测试号申请
-https://mp.weixin.qq.com/debug/cgi-bin/sandboxinfo?action=showinfo&t=sandbox/index
-## 内网穿透工具
-https://www.cpolar.com/
-```
-cpolar.exe http 8123
-```
+
 ## openresty源码安装(ubuntu为例)
 ```
-apt install gcc libpcre3-dev libssl-dev perl make build-essential
+apt install gcc libpcre3-dev libssl-dev perl make build-essential zlib1g-dev
 wget https://openresty.org/download/openresty-1.19.9.1.tar.gz
 tar -zxvf openresty-1.19.9.1.tar.gz
 cd openresty-1.19.9.1/
 ./configure
+make && make install
+```
+
+## 安装luarocks
+```
+wget https://luarocks.github.io/luarocks/releases/luarocks-2.4.3.tar.gz
+tar -xzvf luarocks-2.4.3.tar.gz
+cd luarocks-2.4.3/
+./configure --prefix=/usr/local/openresty/luajit     --with-lua=/usr/local/openresty/luajit/     --lua-suffix=jit     --with-lua-include=/usr/local/openresty/luajit/include/luajit-2.1
 make && make install
 ```
 
@@ -32,11 +35,12 @@ ln -s  /usr/local/openresty/luajit/bin/luajit lua
 mv lua /usr/bin/
 ```
 
+
 ## 安装lapis
 - https://leafo.net/lapis/
 
 ```
-luarocks install lapis
+/usr/local/openresty/luajit/bin/luarocks install lapis
 ```
 
 ## 安装redis依赖包和http-client依赖包以及其他依赖
@@ -45,13 +49,33 @@ opm install lua-resty-string
 opm install openresty/lua-resty-redis
 opm install ledgetech/lua-resty-http
 ```
+
+## 微信公众平台准备
+
+#### 测试号申请
+https://mp.weixin.qq.com/debug/cgi-bin/sandboxinfo?action=showinfo&t=sandbox/index
+#### 内网穿透工具
+https://www.cpolar.com/
+```
+cpolar.exe http 8123
+```
+#### 配置
+```
+# 测试号信息
+	appID xxx
+	appsecret xxx
+# 接口配置信息修改
+	url: 设置成 内网穿透得到的地址 如https://444aece.r6.cpolar.top/wechat/accept
+	Token: 对应配置里的wechat.verifyToken
+```
+
 ## 配置app/config/config.lua
 ```lua
 	-- 微信相关配置
 	wechat = {
-		appId = "",  --公众号id
-		appSecret = "", -- 公众号秘钥
-		verifyToken = "", -- 公众号token
+		appId = "xxx",  --公众号id
+		appSecret = "xxx", -- 公众号秘钥
+		verifyToken = "helloworld", -- 验证Token 
 	},
 	-- redis相关配置
 	redis = {
@@ -69,6 +93,7 @@ opm install ledgetech/lua-resty-http
 ```
 lapis server
 ```
+- 浏览器访问 127.0.0.1:8123
 
 ## 压力测试
 
@@ -102,4 +127,5 @@ Req/Bytes counts sampled once per second.
 
 ## QPS大概8700+
 ```
+
 

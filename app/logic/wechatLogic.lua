@@ -45,7 +45,7 @@ function logic:handleEvent(doc, FromUserName, ToUserName)
     --     <Event><![CDATA[subscribe]]></Event>
     --     <EventKey><![CDATA[]]></EventKey>
     -- </xml>
-    local replyContent = "欢迎关注Nobook, 精彩一触即发~"
+    local replyContent = "欢迎关注, 精彩一触即发~"
     local event = helper.parseCDATA(doc.xml.Event:value());
     if event == "subscribe" then
         -- 关注事件
@@ -62,7 +62,7 @@ function logic:handleEvent(doc, FromUserName, ToUserName)
         self:login(FromUserName, scene)
     elseif event == "unsubscribe" then
         -- 取消订阅
-        -- replyContent = "取消订阅成功, Nobook期待与你再相聚~~~"
+        -- replyContent = "取消订阅成功, 期待与你再相聚~~~"
         replyContent = ""
     elseif event == "CLICK" then
         -- 自定义菜单点击
@@ -92,7 +92,7 @@ function logic:handleInput(doc, FromUserName, ToUserName, MsgType)
     --     <MsgId>23871275387728177</MsgId>
     -- </xml>
     return ""
-    -- local replyContent = "欢迎关注Nobook, 精彩一触即发~"
+    -- local replyContent = "欢迎关注, 精彩一触即发~"
     -- if MsgType == "text" then
     --     local content = helper.parseCDATA(doc.xml.Content:value());
     -- end

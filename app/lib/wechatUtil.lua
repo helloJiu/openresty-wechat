@@ -51,11 +51,11 @@ end
 -- https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1421140183
 function wechatUtil.getAccessToken()
     local red = redis.new()
-    local accessToken, err = red:exec(function(red)
+    local accessToken = red:exec(function(red)
         return red:get("wechat:access_token")
     end)
 
-    if not accessToken or accessToken == ngx.null then 
+    if not accessToken then 
         local appId = config.wechat.appId
         local appSecret = config.wechat.appSecret
         local path = string.format("/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s",appId, appSecret)

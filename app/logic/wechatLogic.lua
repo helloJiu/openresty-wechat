@@ -117,14 +117,12 @@ end
 
 function logic:checkLogin(scene)
     local red = redis.new()
-    local openId, err = red:exec(function(red)
+    local openId = red:exec(function(red)
         -- red:incrby("wechat:login_key:a" .. scene, 1)
         return red:get("wechat:login_key:" .. scene)
     end)
 
-    -- print(openId, type(openId), err, type(err))
-    -- openId 不存在时是UserData类型
-    if not openId or openId == ngx.null then
+    if not openId then
         return "no"
     end
     return "yes"

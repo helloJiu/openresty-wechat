@@ -45,15 +45,16 @@ function _M:exec(options, func)
     options.backlog = self.backlog
     options.ssl_verify = false
     local ok, err = httpc:connect(options)
-    if not ok then
+    if not ok or err ~= nil then
         ngx.log(ngx.ERR, "http connect, err:", err)
         return nil, err
     end
 
     -- 执行业务逻辑
     local res, err = func(httpc)
-    if not res then 
+    if not res or err ~= nil then
         ngx.log(ngx.ERR, "http request, err:", err)
+        httpc:close()
         return nil, err
     end
     -- 读取响应体
@@ -64,7 +65,7 @@ function _M:exec(options, func)
         repeat
             local buffer, err = reader(buffer_size)
             if err then 
-                ngx.log(ngx.ERR, "reader err", err)
+                ngx.log(ngx.ERR, "http read err", err)
                 break
             end
 
@@ -75,10 +76,9 @@ function _M:exec(options, func)
     end
 
     -- 将连接放回连接池
-    local ok = httpc:set_keepalive(self.max_idle_time, self.pool_size)
-    if not ok then
-        httpc:close()
-    end
+    httpc:set_keepalive(self.max_idle_time, self.pool_size)
+
+    print("response =============> ", res_body)
     -- 返回响应体  响应  以及err
     return res_body, res, err
 end

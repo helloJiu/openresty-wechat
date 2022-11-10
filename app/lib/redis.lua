@@ -29,20 +29,21 @@ function _M:exec(func)
 
     -- 建立连接
     local ok, err = red:connect(self.host, self.port)
-    if not ok then
-        ngx.log(ngx.ERR, "Redis: ", "Cannot connect, host: " .. self.host .. ", port: " .. self.port)
+    if not ok or err ~= nil then
+        ngx.log(ngx.ERR, "redis: ", "connect error, host: " .. self.host .. ", port: " .. self.port, err)
         return nil, err
     end
 
     if self.password ~= "" then
         -- 如果连接来自于连接池中，get_reused_times() 永远返回一个非零的值
         -- 只有新的连接才会进行授权
-        local count, err = red:get_reused_times()
+        local count = red:get_reused_times()
         if count == 0 then
             ok, err = red:auth(self.password)
-            if not ok then
+            if not ok or err ~= nil then
+                ngx.log(ngx.ERR, "redis: ", "auth error, host: " .. self.host .. ", port: " .. self.port, err)
                 red:close()
-                return ok, err
+                return nil, err
             end
         end
     end
@@ -53,12 +54,38 @@ function _M:exec(func)
 
     -- 执行业务逻辑
     local res, err = func(red)
-    -- 将连接放回连接池
-    local ok, err = red:set_keepalive(self.max_idle_time, self.pool_size)
-    if not ok then
+    -- print(res, ', ', type(res), ', ', err, ', ', type(err))
+    if res == nil or err ~= nil then
+        -- 表示获取数据错误, 不讲连接放回连接池
+        ngx.log(ngx.ERR, "redis: ", "exec command error" .. self.host .. ", port: " .. self.port, err)
         red:close()
+        return nil, err
     end
+    -- 将连接放回连接池
+    red:set_keepalive(self.max_idle_time, self.pool_size)
+    -- 转换结果
+    if self:is_redis_null(res) then
+        res = nil
+    end
+
     return res, err
+end
+
+function _M:is_redis_null( res )
+    if type(res) == "table" then
+        for k,v in pairs(res) do
+            if v ~= ngx.null then
+                return false
+            end
+        end
+        return true
+    elseif res == ngx.null then
+        return true
+    elseif res == nil then
+        return true
+    end
+
+    return false
 end
 
 return _M
